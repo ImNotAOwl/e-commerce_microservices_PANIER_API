@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  # Service pour l'application Node.js
+  app:
+    build:
+      context: .  # Indique le dossier contenant le Dockerfile
+      dockerfile: Dockerfile
+    container_name: panierApi_App
+    env_file:
+      - .env  # Charge les variables d'environnement depuis le fichier .env
+    ports:
+      - "3000:3000"  # Expose le port de l'application
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - api-network
+
+  # Service pour Redis
+  redis:
+    image: redis:7-alpine
+    container_name: panierApi_redis
+    ports:
+      - "6379:6379"  # Expose le port Redis
+    networks:
+      - api-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Service pour RabbitMQ
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    container_name: panierApi_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"      # Port pour la communication avec l'application
+      - "15672:15672"    # Port pour l'interface de gestion RabbitMQ
+    networks:
+      - api-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  api-network:
+    driver: bridge

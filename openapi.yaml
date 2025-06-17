@@ -1,0 +1,202 @@
+openapi: "3.1.0"
+info:
+  title: BreizhSport Panier API
+  version: "1.2"
+  description: |-
+    API Documentation for managing basket in the BreizhSport application
+
+    Some useful links:
+    - [Panier API repository](https://github.com/MAALSI23G1/PANIER_API)
+tags:
+  - name: health
+    description: Check if the service is alread online
+  - name: panier
+    description: Access to BreizhSport basket API routes 
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+paths:
+  /api/health/live:
+    get:
+      tags: 
+        - health
+      summary: Health check
+      description: Returns a message confirming the service is running.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: LIVE
+
+  /api/panier:
+    get:
+      tags: 
+        - panier
+      summary: Get basket
+      description: Retrieves a basket for one user
+      parameters:
+        - name: user
+          in: query
+          description: User id
+          required: true
+          schema:
+            type: string
+            example: test
+      responses:
+        '200':
+          description: Basket contents
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Basket successfully retrieve
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Panier'
+    post:
+      tags: 
+        - panier
+      summary: Add an article in basket
+      description: Add and article in the basket, if the article already exist the quantity is updated
+      requestBody:
+        description: Basket data to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Panier'
+      responses:
+        '200':
+          description: Article successfully added to basket
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Article successfully added to basket
+                  userId:
+                    type: string
+                    example: 676ae821ee116faf788dc3fb
+
+  /api/panier/{userId}/{articleId}:
+      delete:
+        tags:
+          - panier
+        summary: Remove an article from the basket
+        description: Removes a specific article from the user's basket
+        parameters:
+          - name: userId
+            in: path
+            description: User ID
+            required: true
+            schema:
+              type: string
+          - name: articleId
+            in: path
+            description: Article ID
+            required: true
+            schema:
+              type: string
+          - name: removeArticle
+            in: query
+            description: Indicates whether to remove a single unit or the entire element.
+            required: false
+            schema:
+              type: boolean
+              example: false
+        responses:
+          '200':
+            description: Article successfully removed
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Article successfully removed
+          '404':
+            description: Article not found in the basket
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Article not found
+
+  /api/panier/{userId}:
+    delete:
+      tags:
+        - panier
+      summary: Empty the basket
+      description: Removes all articles from the user's basket
+      parameters:
+        - name: userId
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Basket successfully emptied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Basket successfully emptied
+        '404':
+          description: Basket not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Basket not found
+
+
+components:
+  schemas:
+    Panier:
+      type: object
+      properties:
+        user:
+          type: string
+          example: TestUser
+        articleId: 
+          type: string
+          example: "67658e32611a0ecdfd9ff9f7"
+        name:
+          type: string
+          example: "Maillot de bain"
+        description:
+          type: string
+          example: "Un maillot de bain"
+        price: 
+          type: int
+          example: 30
+        picture:
+          type: string
+          example: "https://example.com/images/smartphone_xyz.jpg"
+        quantity:
+          type: int
+          example: 1
